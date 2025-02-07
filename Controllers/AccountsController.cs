@@ -369,59 +369,59 @@ namespace CrudBankApp.Controllers
         }
 
         [HttpPut("{id}/customer")]
-        public async Task<IActionResult> UpdateUserProfile(int id, [FromBody] UpdateUserProfileDTO updateProfileDto)
+public async Task<IActionResult> UpdateUserProfile(int id, [FromBody] UpdateUserProfileDTO updateProfileDto)
+{
+    try
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var isAdmin = User.IsInRole("Admin");
+
+        // First verify the account exists and user has access
+        var account = await _dbContext.Accounts
+            .Include(a => a.UserProfile)
+                .ThenInclude(up => up.IdentityUser)
+            .FirstOrDefaultAsync(a => a.Id == id && 
+                (isAdmin || a.UserProfile.IdentityUserId == userId));
+
+        if (account == null)
         {
-            try
-            {
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-                // First verify the account belongs to this user
-                var account = await _dbContext.Accounts
-                    .Include(a => a.UserProfile)
-                    .FirstOrDefaultAsync(a => a.Id == id &&
-                        a.UserProfile.IdentityUserId == userId);
-
-                if (account == null)
-                {
-                    return NotFound(new { Message = "Account not found or unauthorized" });
-                }
-
-                // Get the user profile directly
-                var userProfile = await _dbContext.UserProfiles
-                    .Include(up => up.IdentityUser)
-                    .FirstOrDefaultAsync(up => up.IdentityUserId == userId);
-
-                if (userProfile == null)
-                {
-                    return NotFound(new { Message = "User profile not found" });
-                }
-
-                // Update the user profile information
-                userProfile.FirstName = updateProfileDto.FirstName;
-                userProfile.LastName = updateProfileDto.LastName;
-                userProfile.Address = updateProfileDto.Address;
-                userProfile.Phone = updateProfileDto.Phone;
-
-                await _dbContext.SaveChangesAsync();
-
-                // Return updated profile
-                var profileDto = new UserProfileDTO
-                {
-                    Id = userProfile.Id,
-                    FirstName = userProfile.FirstName,
-                    LastName = userProfile.LastName,
-                    Email = userProfile.IdentityUser.Email,
-                    Phone = userProfile.Phone,
-                    Address = userProfile.Address
-                };
-
-                return Ok(profileDto);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error updating user profile");
-                return StatusCode(500, new { Message = "Error updating profile information" });
-            }
+            return NotFound(new { Message = "Account not found or unauthorized" });
         }
+
+        // Update the profile information
+        account.UserProfile.FirstName = updateProfileDto.FirstName;
+        account.UserProfile.LastName = updateProfileDto.LastName;
+        account.UserProfile.Address = updateProfileDto.Address;
+        account.UserProfile.Phone = updateProfileDto.Phone;
+
+        try
+        {
+            await _dbContext.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Database error while updating profile");
+            return StatusCode(500, new { Message = "Database error while updating profile" });
+        }
+
+        // Return updated profile
+        var profileDto = new UserProfileDTO
+        {
+            Id = account.UserProfile.Id,
+            FirstName = account.UserProfile.FirstName,
+            LastName = account.UserProfile.LastName,
+            Email = account.UserProfile.IdentityUser.Email,
+            Phone = account.UserProfile.Phone,
+            Address = account.UserProfile.Address
+        };
+
+        return Ok(profileDto);
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Error updating user profile");
+        return StatusCode(500, new { Message = "Error updating profile information" });
+    }
+}
     }
 }

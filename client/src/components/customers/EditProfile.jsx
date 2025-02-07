@@ -12,8 +12,10 @@ import {
   getCustomerByAccountId,
   updateUserProfile,
 } from "../../managers/userProfileManager";
+import PropTypes from "prop-types"; // Add PropTypes
 
-export default function EditProfile() {
+
+export default function EditProfile({ loggedInUser }) {
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -102,6 +104,11 @@ export default function EditProfile() {
 
       await updateUserProfile(id, updateData);
       setSuccess(true);
+      const successMessage = loggedInUser?.roles?.includes("Admin") 
+        ? "Profile updated successfully! Redirecting to accounts..."
+        : "Your profile has been updated! Redirecting...";
+      
+      setSuccess(successMessage);
       setTimeout(() => navigate("/accounts"), 1500);
     } catch (err) {
       setError(err.message || "Failed to update profile information");
@@ -121,7 +128,11 @@ export default function EditProfile() {
 
   return (
     <div className="container py-4">
-      <h2 className="mb-4">Edit Profile Information</h2>
+      <h2 className="mb-4">
+        {loggedInUser?.roles?.includes("Admin") 
+          ? "Edit Customer Profile" 
+          : "Edit Profile Information"}
+      </h2>
 
       {error && (
         <div className="alert alert-danger mb-4">
@@ -229,3 +240,11 @@ export default function EditProfile() {
     </div>
   );
 }
+
+
+EditProfile.propTypes = {
+  loggedInUser: PropTypes.shape({
+    roles: PropTypes.arrayOf(PropTypes.string),
+    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  }),
+};

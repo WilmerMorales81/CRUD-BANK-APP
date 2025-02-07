@@ -5,8 +5,8 @@ import { AuthorizedRoute } from "./auth/AuthorizedRoute";
 import Login from "./auth/Login";
 import Register from "./auth/Register";
 import Payments from "./Payments/Payments";
-import EditCustomer from "./customers/EditProfile";
 import NewAccount from "./newAccount/NewAccount";
+import EditProfile from "./customers/EditProfile";
 
 export default function ApplicationViews({ loggedInUser, setLoggedInUser }) {
   return (
@@ -32,7 +32,7 @@ export default function ApplicationViews({ loggedInUser, setLoggedInUser }) {
           path="customers/:id"
           element={
             <AuthorizedRoute loggedInUser={loggedInUser}>
-              <EditCustomer />
+              <EditProfile loggedInUser={loggedInUser} />
             </AuthorizedRoute>
           }
         />

@@ -59,7 +59,8 @@ export const getCurrentUser = async () => {
 export const updateUserProfile = async (accountId, profileData) => {
   try {
     const token = localStorage.getItem("token");
-    const response = await fetch(`${apiUrl}/${accountId}/customer`, {
+    // Update URL to match the backend endpoint
+    const response = await fetch(`/api/accounts/${accountId}/customer`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
