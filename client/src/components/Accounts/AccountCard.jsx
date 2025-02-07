@@ -12,9 +12,9 @@ import PropTypes from "prop-types";
 
 export default function AccountCard({
   account,
-  setDetailsAccountId,
-  buttons,
-  setAccounts,
+  setDetailsAccountId = () => {},
+  buttons = false,
+  setAccounts
 }) {
   const [selectedOption, setSelectedOption] = useState("");
   const [loading, setLoading] = useState(false);
@@ -37,29 +37,35 @@ export default function AccountCard({
 
     const paymentAmount =
       selectedOption === "balance" ? account.balance : account.minPay;
-    const paymentRequest = {
-      amount: paymentAmount,
-    };
-
-    try {
-      setLoading(true);
-      setError(null);
-      setSuccessMessage("");
-
-      const response = await payAccount(account.id, paymentRequest);
-
-      if (response && response.message) {
-        setSuccessMessage(response.message);
-        setAccountBalance(response.newBalance);
-      } else {
-        setError("Failed to process payment");
+      if (paymentAmount <= 0) {
+        setError("Cannot process payment of $0. No payment is needed at this time.");
+        return;
       }
-    } catch (error) {
-      setError(error.message || "Failed to process payment");
-    } finally {
-      setLoading(false);
-    }
-  };
+    
+      const paymentRequest = {
+        amount: paymentAmount,
+      };
+    
+      try {
+        setLoading(true);
+        setError(null);
+        setSuccessMessage("");
+    
+        const response = await payAccount(account.id, paymentRequest);
+    
+        if (response && response.message) {
+          setSuccessMessage("Payment processed successfully!");
+          setAccountBalance(response.newBalance);
+          await setAccounts();
+        } else {
+          setError("Failed to process payment");
+        }
+      } catch (error) {
+        setError(error.message || "Failed to process payment");
+      } finally {
+        setLoading(false);
+      }
+    };
 
   const handleDelete = async () => {
     if (account.balance > 0) {
@@ -77,12 +83,8 @@ export default function AccountCard({
       setSuccessMessage("");
 
       await deleteAccount(account.id);
-
-      setAccounts((prevAccounts) =>
-        prevAccounts.filter((acc) => acc.id !== account.id)
-      );
-
-      setSuccessMessage("Account deleted successfully");
+      setSuccessMessage("Account deleted successfully!");
+      await setAccounts(account.id);
     } catch (error) {
       console.error("Delete error:", error);
       setError(error.message || "Failed to delete account");
@@ -103,13 +105,19 @@ export default function AccountCard({
         </CardSubtitle>
 
         <CardSubtitle className="mb-2 text-muted" tag="h6">
-          Balance: {formatCurrency(account.balance)}
+          Balance: {formatCurrency(accountBalance)}
         </CardSubtitle>
 
-        {error && <div className="alert alert-danger mb-3">{error}</div>}
+        {error && (
+          <div className="alert alert-danger mb-3">
+            {error}
+          </div>
+        )}
 
         {successMessage && (
-          <div className="alert alert-success mb-3">{successMessage}</div>
+          <div className="alert alert-success mb-3">
+            {successMessage}
+          </div>
         )}
 
         {buttons ? (
@@ -125,8 +133,13 @@ export default function AccountCard({
               View Details
             </Button>
 
-            <Button color="danger" outline onClick={handleDelete}>
-              Delete
+            <Button 
+              color="danger" 
+              outline 
+              onClick={handleDelete}
+              disabled={loading}
+            >
+              {loading ? <Spinner size="sm" /> : "Delete"}
             </Button>
           </div>
         ) : (
@@ -146,7 +159,7 @@ export default function AccountCard({
                   className="form-check-label"
                   htmlFor={`balance-${account.id}`}
                 >
-                  Full Balance: {formatCurrency(account.balance)}
+                  Full Balance: {formatCurrency(accountBalance)}
                 </label>
               </div>
               <div className="form-check mb-2">
@@ -171,7 +184,7 @@ export default function AccountCard({
             <Button
               color="success"
               onClick={handleSubmitPayment}
-              disabled={loading || !selectedOption}
+              disabled={loading || !selectedOption || accountBalance <= 0}
               className="w-100 mb-3"
             >
               {loading ? <Spinner size="sm" /> : "Make Payment"}
@@ -198,7 +211,7 @@ AccountCard.propTypes = {
       name: PropTypes.string,
     }),
   }).isRequired,
-  setDetailsAccountId: PropTypes.func.isRequired,
+  setDetailsAccountId: PropTypes.func,
   buttons: PropTypes.bool,
   setAccounts: PropTypes.func.isRequired,
 };

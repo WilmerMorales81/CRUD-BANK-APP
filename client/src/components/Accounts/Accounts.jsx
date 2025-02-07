@@ -1,7 +1,7 @@
 import { useState } from "react";
 import AccountList from "./AccountList";
 import AccountDetails from "./AccountDetails";
-import PropTypes from "prop-types";
+import PropTypes from "prop-types"; 
 
 export default function Accounts({ loggedInUser }) {
   const [detailsAccountId, setDetailsAccountId] = useState(null);
@@ -25,6 +25,6 @@ export default function Accounts({ loggedInUser }) {
 
 Accounts.propTypes = {
   loggedInUser: PropTypes.shape({
-    roles: PropTypes.arrayOf(PropTypes.string).isRequired,
+    roles: PropTypes.arrayOf(PropTypes.string),
   }),
 };

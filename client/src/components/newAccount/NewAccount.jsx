@@ -60,7 +60,7 @@ const NewAccount = () => {
 
       const createdAccount = await createAccount(newAccount);
 
-      setSuccessMessage(
+      window.alert(
         `Account created successfully! Account Number: ${createdAccount.number}`
       );
       setSelectedAccountType("");

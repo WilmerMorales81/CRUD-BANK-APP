@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { getAccounts, getAccountsByUser } from "../../managers/AccountManager";
 import { getAccountType } from "../../managers/AccountTypeManager";
-import { Spinner, Alert } from "reactstrap";
+import { Spinner } from "reactstrap";
 import { useNavigate } from "react-router-dom";
 import AccountCard from "./AccountCard";
 import PropTypes from "prop-types";
@@ -11,42 +11,42 @@ export default function AccountList({ setDetailsAccountId, loggedInUser }) {
   const [filteredAccounts, setFilteredAccounts] = useState([]);
   const [accountTypes, setAccountTypes] = useState([]);
   const [selectedAccountType, setSelectedAccountType] = useState("all");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const navigate = useNavigate();
 
+  const fetchData = async () => {
+    if (!loggedInUser) {
+      navigate("/login");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      let accountsData;
+      if (loggedInUser.roles?.includes("Admin")) {
+        accountsData = await getAccounts();
+      } else {
+        accountsData = await getAccountsByUser();
+      }
+
+      const typesData = await getAccountType();
+
+      setAccounts(accountsData || []);
+      setFilteredAccounts(accountsData || []);
+      setAccountTypes(typesData || []);
+    } catch (err) {
+      console.error("Error fetching data:", err);
+      setError("Failed to load accounts");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      if (!loggedInUser) {
-        navigate("/login");
-        return;
-      }
-
-      try {
-        setLoading(true);
-        setError(null);
-
-        let accountsData;
-        if (loggedInUser.roles?.includes("Admin")) {
-          accountsData = await getAccounts();
-        } else {
-          accountsData = await getAccountsByUser();
-        }
-
-        const typesData = await getAccountType();
-
-        setAccounts(accountsData || []);
-        setFilteredAccounts(accountsData || []);
-        setAccountTypes(typesData || []);
-      } catch (err) {
-        console.error("Error fetching data:", err);
-        setError("Failed to load accounts");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchData();
   }, [loggedInUser, navigate]);
 
@@ -65,6 +65,10 @@ export default function AccountList({ setDetailsAccountId, loggedInUser }) {
     }
   };
 
+  const handleAccountUpdate = async () => {
+    await fetchData();
+  };
+
   if (loading) {
     return (
       <div className="text-center p-4">
@@ -74,49 +78,48 @@ export default function AccountList({ setDetailsAccountId, loggedInUser }) {
   }
 
   if (error) {
-    return <Alert color="danger">{error}</Alert>;
+    return (
+      <div className="alert alert-danger">
+        {error}
+      </div>
+    );
   }
 
   return (
     <div>
       <h2>Accounts</h2>
 
-      {loading && <div>Loading...</div>}
-      {error && <div className="alert alert-danger">{error}</div>}
+      <div className="mb-3">
+        <label htmlFor="accountTypeSelect">Select Account Type:</label>
+        <select
+          id="accountTypeSelect"
+          value={selectedAccountType}
+          onChange={handleAccountTypeChange}
+          className="form-select"
+        >
+          <option value="all">Show All</option>
+          {accountTypes.map((type) => (
+            <option key={type.id} value={type.id}>
+              {type.name}
+            </option>
+          ))}
+        </select>
+      </div>
 
-      {!loading && !error && (
-        <>
-          <div className="mb-3">
-            <label htmlFor="accountTypeSelect">Select Account Type:</label>
-            <select
-              id="accountTypeSelect"
-              value={selectedAccountType}
-              onChange={handleAccountTypeChange}
-              className="form-select"
-            >
-              <option value="all">Show All</option>
-              {accountTypes.map((type) => (
-                <option key={type.id} value={type.id}>
-                  {type.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {filteredAccounts.length > 0 ? (
-            filteredAccounts.map((account) => (
-              <AccountCard
-                key={account.id}
-                account={account}
-                setDetailsAccountId={setDetailsAccountId}
-                buttons={true}
-                setAccounts={setAccounts}
-              />
-            ))
-          ) : (
-            <p>No accounts found.</p>
-          )}
-        </>
+      {filteredAccounts.length > 0 ? (
+        filteredAccounts.map((account) => (
+          <AccountCard
+            key={account.id}
+            account={account}
+            setDetailsAccountId={setDetailsAccountId}
+            buttons={true}
+            setAccounts={handleAccountUpdate}
+          />
+        ))
+      ) : (
+        <div className="alert alert-info">
+          No accounts found.
+        </div>
       )}
     </div>
   );

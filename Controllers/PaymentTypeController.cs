@@ -17,7 +17,7 @@ public class PaymentTypeController : ControllerBase
         _dbContext = context;
     }
 
-    // GET: api/PaymentType
+    
     [HttpGet]
     //[Authorize]
     public IActionResult Get()
@@ -26,7 +26,7 @@ public class PaymentTypeController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    //[Authorize]
+    [Authorize]
     public IActionResult GetById(int id)
     {
         PaymentType paymentType = _dbContext

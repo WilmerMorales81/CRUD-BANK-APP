@@ -7,7 +7,6 @@ import {
   Label,
   Input,
   Spinner,
-  Alert,
 } from "reactstrap";
 import {
   getCustomerByAccountId,
@@ -125,15 +124,15 @@ export default function EditProfile() {
       <h2 className="mb-4">Edit Profile Information</h2>
 
       {error && (
-        <Alert color="danger" className="mb-4">
+        <div className="alert alert-danger mb-4">
           {error}
-        </Alert>
+        </div>
       )}
 
       {success && (
-        <Alert color="success" className="mb-4">
+        <div className="alert alert-success mb-4">
           Profile updated successfully! Redirecting...
-        </Alert>
+        </div>
       )}
 
       <Form onSubmit={handleSubmit} className="bg-light p-4 rounded shadow-sm">

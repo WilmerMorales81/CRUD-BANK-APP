@@ -12,7 +12,6 @@ function App() {
   useEffect(() => {
     tryGetLoggedInUser()
       .then((user) => {
-        console.log("Fetched loggedInUser:", user);
         setLoggedInUser(user);
       })
       .catch((error) => {
@@ -33,7 +32,7 @@ function App() {
   if (!loggedInUser) {
     return (
       <div className="login-container">
-        <h3>Please Log In</h3>
+        
         <ApplicationViews
           loggedInUser={loggedInUser}
           setLoggedInUser={setLoggedInUser}

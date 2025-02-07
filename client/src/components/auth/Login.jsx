@@ -56,7 +56,6 @@ export default function Login({ setLoggedInUser }) {
         setFailedLogin(true);
         setErrorMessage("Invalid email or password");
       } else {
-        console.log("Login successful:", user);
         setLoggedInUser(user);
         navigate("/");
       }

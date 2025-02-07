@@ -3,8 +3,7 @@ import { getPaymentTypes } from "../../managers/PaymentTypeManager";
 import { getAccounts } from "../../managers/AccountManager";
 import AccountCard from "../Accounts/AccountCard";
 
-// eslint-disable-next-line react/prop-types
-export default function PaymentList({ setDetailsAccountId }) {
+export default function PaymentList() {  
   const [filteredAccounts, setFilteredAccounts] = useState([]);
   const [paymentTypes, setPaymentTypes] = useState([]);
   const [selectedPaymentType, setSelectedPaymentType] = useState("");
@@ -20,58 +19,86 @@ export default function PaymentList({ setDetailsAccountId }) {
     getPaymentTypesList();
   }, []);
 
-  const handlePaymentTypeChange = (event) => {
+  const handlePaymentTypeChange = async (event) => {
     const selectedType = event.target.value;
     setSelectedPaymentType(selectedType);
-    setShowAccounts(false); // Ocultar las cuentas inicialmente
+    setShowAccounts(false);
 
     if (selectedType) {
-      // Cargar cuentas solo para el tipo de pago seleccionado
-      getAccounts().then((data) => {
-        const filtered = data.filter(
+      try {
+        const accounts = await getAccounts();
+        const filtered = accounts.filter(
           (account) => account.accountTypeId === parseInt(selectedType)
         );
         setFilteredAccounts(filtered);
-        setShowAccounts(true); // Mostrar las cuentas después de cargar
-      });
+        setShowAccounts(true);
+      } catch (error) {
+        console.error("Error loading accounts:", error);
+      }
+    }
+  };
+
+  // Function to update accounts after payment or deletion
+  const handleAccountsUpdate = async () => {
+    try {
+      const accounts = await getAccounts();
+      const filtered = accounts.filter(
+        (account) => account.accountTypeId === parseInt(selectedPaymentType)
+      );
+      setFilteredAccounts(filtered);
+    } catch (error) {
+      console.error("Error refreshing accounts:", error);
     }
   };
 
   return (
-    <>
-      <h2>Payments</h2>
-      <div>
+    <div className="payment-list-container">
+      <h2 className="mb-4">Payments</h2>
+      
+      <div className="payment-types-section mb-4">
         <h3>Select Payment Method:</h3>
-        {paymentTypes.map((type) => (
-          <div key={type.id}>
-            <input
-              type="radio"
-              id={`paymentType-${type.id}`}
-              name="paymentType"
-              value={type.id}
-              checked={selectedPaymentType === type.id.toString()}
-              onChange={handlePaymentTypeChange}
-            />
-            <label htmlFor={`paymentType-${type.id}`}>{type.name}</label>
-          </div>
-        ))}
+        <div className="payment-types-grid">
+          {paymentTypes.map((type) => (
+            <div key={type.id} className="form-check mb-2">
+              <input
+                type="radio"
+                id={`paymentType-${type.id}`}
+                name="paymentType"
+                value={type.id}
+                checked={selectedPaymentType === type.id.toString()}
+                onChange={handlePaymentTypeChange}
+                className="form-check-input"
+              />
+              <label 
+                className="form-check-label" 
+                htmlFor={`paymentType-${type.id}`}
+              >
+                {type.name}
+              </label>
+            </div>
+          ))}
+        </div>
       </div>
 
       {showAccounts && (
-        <>
-          <h3>Accounts you can pay with this method:</h3>
-          <ul>
-            {filteredAccounts.map((account) => (
-              <AccountCard
-                account={account}
-                setDetailsAccountId={setDetailsAccountId}
-                key={account.id}
-                buttons={false}
-              />
-            ))}
-          </ul>
-        </>
+        <div className="accounts-section">
+          <h3 className="mb-3">Available Accounts:</h3>
+          <div className="accounts-grid">
+            {filteredAccounts.length > 0 ? (
+              filteredAccounts.map((account) => (
+                <AccountCard
+                  key={account.id}
+                  account={account}
+                  setAccounts={handleAccountsUpdate}
+                  buttons={false}
+                />
+              ))
+            ) : (
+              <p>No accounts available for this payment method.</p>
+            )}
+          </div>
+        </div>
       )}
-    </>
+    </div>
   );
 }
