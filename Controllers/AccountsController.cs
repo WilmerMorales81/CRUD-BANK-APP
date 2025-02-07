@@ -26,42 +26,58 @@ namespace CrudBankApp.Controllers
 
         // GET: api/Accounts
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+public async Task<IActionResult> GetAll()
+{
+    try
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var isAdmin = User.IsInRole("Admin");
+
+        IQueryable<Account> accountsQuery = _dbContext.Accounts
+            .Include(a => a.AccountType)
+            .Include(a => a.UserProfile)
+                .ThenInclude(up => up.IdentityUser);  // Include IdentityUser for email
+
+        // If not admin, filter by user
+        if (!isAdmin)
         {
-            try
-            {
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                var isAdmin = User.IsInRole("Admin");
-
-                IQueryable<Account> accountsQuery = _dbContext.Accounts
-                    .Include(a => a.AccountType)
-                    .Include(a => a.UserProfile);
-
-                // If not admin, filter by user
-                if (!isAdmin)
-                {
-                    accountsQuery = accountsQuery.Where(a => a.UserProfile.IdentityUserId == userId);
-                }
-
-                var accounts = await accountsQuery.Select(a => new AccountDTO
-                {
-                    Id = a.Id,
-                    Number = a.Number,
-                    AccountTypeId = a.AccountTypeId,
-                    AccountTypeName = a.AccountType.Name,
-                    Balance = a.Balance,
-                    MinPay = a.MinPay,
-                    UserProfileId = a.UserProfileId
-                }).ToListAsync();
-
-                return Ok(accounts);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving accounts");
-                return StatusCode(500, new { Message = "Error retrieving accounts" });
-            }
+            accountsQuery = accountsQuery.Where(a => a.UserProfile.IdentityUserId == userId);
         }
+
+        var accounts = await accountsQuery.Select(a => new AccountDTO
+        {
+            Id = a.Id,
+            Number = a.Number,
+            AccountTypeId = a.AccountTypeId,
+            AccountTypeName = a.AccountType.Name,
+            Balance = a.Balance,
+            MinPay = a.MinPay,
+            UserProfileId = a.UserProfileId,
+            CreatedAt = a.CreatedAt,
+            AccountType = new AccountTypeDTO
+            {
+                Id = a.AccountType.Id,
+                Name = a.AccountType.Name
+            },
+            UserProfile = new UserProfileDTO
+            {
+                Id = a.UserProfile.Id,
+                FirstName = a.UserProfile.FirstName,
+                LastName = a.UserProfile.LastName,
+                Email = a.UserProfile.IdentityUser.Email,
+                Phone = a.UserProfile.Phone,
+                Address = a.UserProfile.Address
+            }
+        }).ToListAsync();
+
+        return Ok(accounts);
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Error retrieving accounts");
+        return StatusCode(500, new { Message = "Error retrieving accounts" });
+    }
+}
 
         // GET: api/Accounts/user
         [HttpGet("user")]
@@ -99,49 +115,51 @@ namespace CrudBankApp.Controllers
 
         
         [HttpPost("pay/{id}")]
-        public async Task<IActionResult> PayAccount(int id, [FromBody] PaymentDTO paymentDto)
+public async Task<IActionResult> PayAccount(int id, [FromBody] PaymentDTO paymentDto)
+{
+    try
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var isAdmin = User.IsInRole("Admin");  // Add admin check
+
+        var account = await _dbContext.Accounts
+            .Include(a => a.UserProfile)
+            .FirstOrDefaultAsync(a => a.Id == id && 
+                (isAdmin || a.UserProfile.IdentityUserId == userId));  // Allow admin access
+
+        if (account == null)
         {
-            try
-            {
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                var account = await _dbContext.Accounts
-                    .Include(a => a.UserProfile)
-                    .FirstOrDefaultAsync(a => a.Id == id &&
-                        a.UserProfile.IdentityUserId == userId);
-
-                if (account == null)
-                {
-                    return NotFound(new { Message = "Account not found or unauthorized" });
-                }
-
-                if (paymentDto.Amount <= 0)
-                {
-                    return BadRequest(new { Message = "Payment amount must be greater than zero" });
-                }
-
-                if (paymentDto.Amount > account.Balance)
-                {
-                    return BadRequest(new { Message = "Payment amount cannot exceed balance" });
-                }
-
-                // Process payment - this will automatically update MinPay through the setter
-                account.Balance -= paymentDto.Amount;
-
-                await _dbContext.SaveChangesAsync();
-
-                return Ok(new
-                {
-                    Message = "Payment processed successfully",
-                    NewBalance = account.Balance,
-                    NewMinimumPayment = account.MinPay
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error processing payment");
-                return StatusCode(500, new { Message = "Error processing payment" });
-            }
+            return NotFound(new { Message = "Account not found or unauthorized" });
         }
+
+        if (paymentDto.Amount <= 0)
+        {
+            return BadRequest(new { Message = "Payment amount must be greater than zero" });
+        }
+
+        if (paymentDto.Amount > account.Balance)
+        {
+            return BadRequest(new { Message = "Payment amount cannot exceed balance" });
+        }
+
+        // Process payment
+        account.Balance -= paymentDto.Amount;
+
+        await _dbContext.SaveChangesAsync();
+
+        return Ok(new
+        {
+            Message = "Payment processed successfully",
+            NewBalance = account.Balance,
+            NewMinimumPayment = account.MinPay
+        });
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Error processing payment");
+        return StatusCode(500, new { Message = "Error processing payment" });
+    }
+}
 
 
         // POST: api/Accounts
@@ -298,37 +316,39 @@ namespace CrudBankApp.Controllers
 
         // DELETE: api/Accounts/{id}
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteAccount(int id)
+public async Task<IActionResult> DeleteAccount(int id)
+{
+    try
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var isAdmin = User.IsInRole("Admin");  // Add admin check
+
+        var account = await _dbContext.Accounts
+            .FirstOrDefaultAsync(a => a.Id == id && 
+                (isAdmin || a.UserProfile.IdentityUserId == userId));  // Allow admin access
+
+        if (account == null)
         {
-            try
-            {
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                var account = await _dbContext.Accounts
-                    .FirstOrDefaultAsync(a => a.Id == id &&
-                        a.UserProfile.IdentityUserId == userId);
-
-                if (account == null)
-                {
-                    return NotFound(new { Message = "Account not found or unauthorized" });
-                }
-
-                // Business rule: Cannot delete account with positive balance
-                if (account.Balance > 0)
-                {
-                    return BadRequest(new { Message = "Cannot delete account with positive balance" });
-                }
-
-                _dbContext.Accounts.Remove(account);
-                await _dbContext.SaveChangesAsync();
-
-                return Ok(new { Message = "Account deleted successfully" });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error deleting account");
-                return StatusCode(500, new { Message = "Error deleting account" });
-            }
+            return NotFound(new { Message = "Account not found or unauthorized" });
         }
+
+        // Business rule: Cannot delete account with positive balance
+        if (account.Balance > 0)
+        {
+            return BadRequest(new { Message = "Cannot delete account with positive balance" });
+        }
+
+        _dbContext.Accounts.Remove(account);
+        await _dbContext.SaveChangesAsync();
+
+        return Ok(new { Message = "Account deleted successfully" });
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Error deleting account");
+        return StatusCode(500, new { Message = "Error deleting account" });
+    }
+}
         // GET: api/accounts/{id}/customer
         [HttpGet("{id}/customer")]
         public async Task<IActionResult> GetAccountCustomer(int id)

@@ -34,13 +34,13 @@ export const getAccountById = (id) => {
 
 export const payAccount = async (accountId, paymentData) => {
   try {
-    
     if (paymentData.amount <= 0) {
       throw new Error("Payment amount must be greater than zero");
     }
 
     const token = localStorage.getItem("token");
-    const response = await fetch(`${apiUrl}/pay/${accountId}`, {
+    // Fix the URL to include /api
+    const response = await fetch(`/api/accounts/pay/${accountId}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

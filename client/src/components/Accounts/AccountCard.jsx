@@ -96,17 +96,24 @@ export default function AccountCard({
   return (
     <Card color="dark" outline style={{ marginBottom: "1rem" }}>
       <CardBody>
-        <CardTitle className="mb-4" tag="h5">
-          {account.accountType?.name || account.accountTypeName}
-        </CardTitle>
+  <CardTitle className="mb-4" tag="h5">
+    {account.accountType?.name || account.accountTypeName}
+  </CardTitle>
 
-        <CardSubtitle className="mb-4 text-muted" tag="h6">
-          Account #{account.number}
-        </CardSubtitle>
+  <CardSubtitle className="mb-4 text-muted" tag="h6">
+    Account #{account.number}
+  </CardSubtitle>
 
-        <CardSubtitle className="mb-2 text-muted" tag="h6">
-          Balance: {formatCurrency(accountBalance)}
-        </CardSubtitle>
+  
+  {account.userProfile && (
+    <CardSubtitle className="mb-4 text-muted" tag="h6">
+      Customer: {account.userProfile.firstName} {account.userProfile.lastName}
+    </CardSubtitle>
+  )}
+
+  <CardSubtitle className="mb-2 text-muted" tag="h6">
+    Balance: {formatCurrency(accountBalance)}
+  </CardSubtitle>
 
         {error && (
           <div className="alert alert-danger mb-3">
@@ -209,6 +216,10 @@ AccountCard.propTypes = {
     accountTypeName: PropTypes.string,
     accountType: PropTypes.shape({
       name: PropTypes.string,
+    }),
+    userProfile: PropTypes.shape({ 
+      firstName: PropTypes.string,
+      lastName: PropTypes.string,
     }),
   }).isRequired,
   setDetailsAccountId: PropTypes.func,
