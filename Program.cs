@@ -257,6 +257,13 @@ app.UseAuthorization();
 app.UseEndpoints(endpoints =>
 {
     endpoints.MapControllers();
+
+     // ---------- Health check ----------
+    endpoints.MapGet("/health", async context =>
+    {
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsync("{\"status\":\"Healthy\"}");
+    });
 });
 
 app.Run();
