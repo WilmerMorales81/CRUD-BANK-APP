@@ -1,0 +1,30 @@
+##################   GENERAL   ##################
+.git
+.gitignore
+*.md
+*.http
+.env
+.env.*          # .env.local, .env.development, etc.
+.vscode/
+.idea/
+
+##################   DOTNET   ##################
+bin/
+obj/
+*.user
+*.suo
+*.cache
+*.ncrunch*
+*.vs/
+TestResults/
+
+##################   NODE/REACT FRONTEND   ##################
+client/node_modules/
+client/dist/
+client/.cache/
+client/.vite/
+client/.eslintcache
+
+##################   OS / EDITOR TRASH   ##################
+*.DS_Store
+Thumbs.db
