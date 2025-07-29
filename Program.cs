@@ -17,8 +17,16 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
 // Configure DbContext
+var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__CrudBankAppDbConnectionString") 
+    ?? builder.Configuration.GetConnectionString("CrudBankAppDbConnectionString");
+
+if (string.IsNullOrEmpty(connectionString))
+{
+    throw new InvalidOperationException("Database connection string is not configured. Please set the ConnectionStrings__CrudBankAppDbConnectionString environment variable.");
+}
+
 builder.Services.AddDbContext<CrudBankAppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("CrudBankAppDbConnectionString")));
+    options.UseNpgsql(connectionString));
 
 // Configure Identity
 builder.Services.AddIdentity<IdentityUser, IdentityRole>()
@@ -101,7 +109,11 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowAll", policyBuilder =>
     {
         policyBuilder
-            .WithOrigins("http://localhost:5173") // Your Vite frontend URL
+            .WithOrigins(
+                "http://localhost:5173", // Your Vite frontend URL (local)
+                "https://crud-bank-app.vercel.app", // Production frontend URL
+                "https://your-frontend-domain.vercel.app" // Replace with your actual Vercel domain
+            )
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials()
