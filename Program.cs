@@ -111,6 +111,11 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+foreach (System.Collections.DictionaryEntry kv in Environment.GetEnvironmentVariables())
+{
+    Console.WriteLine($"ENVKEY:{kv.Key}  =  {kv.Value}");
+}
+
 // ------------- DEBUG env -------------
 Console.WriteLine("DEBUG_ENV: ConnectionStrings__CrudBankAppDbConnectionString = " +
     (Environment.GetEnvironmentVariable("ConnectionStrings__CrudBankAppDbConnectionString") ?? "NULL"));
