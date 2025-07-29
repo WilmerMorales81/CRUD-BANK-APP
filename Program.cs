@@ -17,6 +17,12 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
 // Configure DbContext
+Console.WriteLine("=== ENVIRONMENT VARIABLES DEBUG ===");
+Console.WriteLine($"CRUD_BANK_CONN: {Environment.GetEnvironmentVariable("CRUD_BANK_CONN")}");
+Console.WriteLine($"ConnectionStrings__CrudBankAppDbConnectionString: {Environment.GetEnvironmentVariable("ConnectionStrings__CrudBankAppDbConnectionString")}");
+Console.WriteLine($"All env vars: {string.Join(", ", Environment.GetEnvironmentVariables().Cast<System.Collections.DictionaryEntry>().Select(kv => $"{kv.Key}={kv.Value}"))}");
+Console.WriteLine("=== END DEBUG ===");
+
 var connectionString = Environment.GetEnvironmentVariable("CRUD_BANK_CONN") 
     ?? Environment.GetEnvironmentVariable("ConnectionStrings__CrudBankAppDbConnectionString")
     ?? builder.Configuration.GetConnectionString("CrudBankAppDbConnectionString");
