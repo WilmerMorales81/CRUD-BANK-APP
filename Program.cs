@@ -111,6 +111,14 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+// ------------- DEBUG env -------------
+Console.WriteLine("DEBUG_ENV: ConnectionStrings__CrudBankAppDbConnectionString = " +
+    (Environment.GetEnvironmentVariable("ConnectionStrings__CrudBankAppDbConnectionString") ?? "NULL"));
+Console.WriteLine("DEBUG_ENV: AdminEmail = " +
+    (Environment.GetEnvironmentVariable("AdminEmail") ?? "NULL"));
+// ------------- END DEBUG -------------
+
+
 // Create roles and admin user
 
 using (var scope = app.Services.CreateScope())
@@ -140,9 +148,9 @@ using (var scope = app.Services.CreateScope())
     // Get or create admin user
     var adminEmail = configuration["AdminEmail"];
     var adminPassword = configuration["AdminPassword"];
-    
+
     Console.WriteLine($"[SETUP] Setting up admin user: {adminEmail}");
-    
+
     var adminUser = await userManager.FindByEmailAsync(adminEmail);
     if (adminUser == null)
     {
@@ -219,21 +227,21 @@ using (var scope = app.Services.CreateScope())
     Console.WriteLine($"Roles: {string.Join(", ", verifyRoles)}");
 
     // After creating the admin user and profile
-Console.WriteLine("\n[VERIFY] Database contents:");
-var allUsers = await userManager.Users.ToListAsync();
-var allProfiles = await dbContext.UserProfiles.ToListAsync();
+    Console.WriteLine("\n[VERIFY] Database contents:");
+    var allUsers = await userManager.Users.ToListAsync();
+    var allProfiles = await dbContext.UserProfiles.ToListAsync();
 
-Console.WriteLine("\nUsers:");
-foreach (var user in allUsers)
-{
-    Console.WriteLine($"User ID: {user.Id}, Email: {user.Email}");
-}
+    Console.WriteLine("\nUsers:");
+    foreach (var user in allUsers)
+    {
+        Console.WriteLine($"User ID: {user.Id}, Email: {user.Email}");
+    }
 
-Console.WriteLine("\nProfiles:");
-foreach (var profile in allProfiles)
-{
-    Console.WriteLine($"Profile ID: {profile.Id}, IdentityUserId: {profile.IdentityUserId}");
-}
+    Console.WriteLine("\nProfiles:");
+    foreach (var profile in allProfiles)
+    {
+        Console.WriteLine($"Profile ID: {profile.Id}, IdentityUserId: {profile.IdentityUserId}");
+    }
 }
 
 
