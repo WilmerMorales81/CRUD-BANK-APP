@@ -17,12 +17,13 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
 // Configure DbContext
-var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__CrudBankAppDbConnectionString") 
+var connectionString = Environment.GetEnvironmentVariable("CRUD_BANK_CONN") 
+    ?? Environment.GetEnvironmentVariable("ConnectionStrings__CrudBankAppDbConnectionString")
     ?? builder.Configuration.GetConnectionString("CrudBankAppDbConnectionString");
 
 if (string.IsNullOrEmpty(connectionString))
 {
-    throw new InvalidOperationException("Database connection string is not configured. Please set the ConnectionStrings__CrudBankAppDbConnectionString environment variable.");
+    throw new InvalidOperationException("Database connection string is not configured. Please set the CRUD_BANK_CONN or ConnectionStrings__CrudBankAppDbConnectionString environment variable.");
 }
 
 builder.Services.AddDbContext<CrudBankAppDbContext>(options =>
