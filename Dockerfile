@@ -1,25 +1,20 @@
-###########  Build stage  #################
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+WORKDIR /app
+EXPOSE 80
+EXPOSE 443
+
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
-
-# Copiar el .csproj y restaurar dependencias
 COPY ["CRUD-BANK-APP.csproj", "./"]
-RUN dotnet restore
-
-# Copiar todo el código y publicar en Release
+RUN dotnet restore "CRUD-BANK-APP.csproj"
 COPY . .
-RUN dotnet publish -c Release -o /app/out --no-restore
+WORKDIR "/src/."
+RUN dotnet build "CRUD-BANK-APP.csproj" -c Release -o /app/build
 
-###########  Runtime stage  ###############
-FROM mcr.microsoft.com/dotnet/aspnet:8.0
+FROM build AS publish
+RUN dotnet publish "CRUD-BANK-APP.csproj" -c Release -o /app/publish /p:UseAppHost=false
+
+FROM base AS final
 WORKDIR /app
-
-# Copiar binarios publicados
-COPY --from=build /app/out .
-
-# Expone el puerto 5000 dentro del contenedor
-ENV ASPNETCORE_URLS=http://+:5000
-EXPOSE 5000
-
-# Comando de arranque
+COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "CRUD-BANK-APP.dll"]
