@@ -17,19 +17,38 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
 // Configure DbContext
-Console.WriteLine("=== RAILWAY DEBUG ===");
-Console.WriteLine($"CRUD_BANK_CONN: '{Environment.GetEnvironmentVariable("CRUD_BANK_CONN")}'");
-Console.WriteLine($"ConnectionStrings__CrudBankAppDbConnectionString: '{Environment.GetEnvironmentVariable("ConnectionStrings__CrudBankAppDbConnectionString")}'");
-Console.WriteLine("All environment variables:");
-foreach (var kv in Environment.GetEnvironmentVariables().Cast<System.Collections.DictionaryEntry>())
-{
-    Console.WriteLine($"  {kv.Key} = {kv.Value}");
-}
-Console.WriteLine("=== END DEBUG ===");
+Console.WriteLine("=== RAILWAY DEBUG START ===");
+Console.WriteLine($"Current directory: {Directory.GetCurrentDirectory()}");
+Console.WriteLine($"Environment variables count: {Environment.GetEnvironmentVariables().Count}");
 
-var connectionString = Environment.GetEnvironmentVariable("CRUD_BANK_CONN") 
-    ?? Environment.GetEnvironmentVariable("ConnectionStrings__CrudBankAppDbConnectionString")
-    ?? builder.Configuration.GetConnectionString("CrudBankAppDbConnectionString");
+var crudBankConn = Environment.GetEnvironmentVariable("CRUD_BANK_CONN");
+var connectionStringsConn = Environment.GetEnvironmentVariable("ConnectionStrings__CrudBankAppDbConnectionString");
+var configConn = builder.Configuration.GetConnectionString("CrudBankAppDbConnectionString");
+
+Console.WriteLine($"CRUD_BANK_CONN: '{crudBankConn}'");
+Console.WriteLine($"ConnectionStrings__CrudBankAppDbConnectionString: '{connectionStringsConn}'");
+Console.WriteLine($"Config connection string: '{configConn}'");
+
+// Try to get connection string from multiple sources
+var connectionString = crudBankConn ?? connectionStringsConn ?? configConn;
+
+if (string.IsNullOrEmpty(connectionString))
+{
+    Console.WriteLine("=== NO CONNECTION STRING FOUND ===");
+    Console.WriteLine("Available environment variables:");
+    foreach (var kv in Environment.GetEnvironmentVariables().Cast<System.Collections.DictionaryEntry>())
+    {
+        Console.WriteLine($"  {kv.Key} = {kv.Value}");
+    }
+    Console.WriteLine("=== END DEBUG ===");
+    
+    // For Railway, let's try a hardcoded connection string as fallback
+    connectionString = "Host=ep-young-resonance-aeqgjf89-pooler.c-2.us-east-2.aws.neon.tech;Port=5432;Database=neondb;Username=neondb_owner;Password=npg_uXl0QsVY7iIW;SSL Mode=Require;Trust Server Certificate=true";
+    Console.WriteLine("Using fallback connection string for Railway");
+}
+
+Console.WriteLine($"Final connection string: {connectionString}");
+Console.WriteLine("=== RAILWAY DEBUG END ===");
 
 if (string.IsNullOrEmpty(connectionString))
 {
