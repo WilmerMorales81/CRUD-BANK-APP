@@ -173,8 +173,10 @@ using (var scope = app.Services.CreateScope())
     }
 
     // Get or create admin user
-    var adminEmail = configuration["AdminEmail"];
-    var adminPassword = configuration["AdminPassword"];
+    var adminEmail = configuration["AdminEmail"] ?? Environment.GetEnvironmentVariable("AdminEmail") ?? "admin@crudbank.com";
+    var adminPassword = configuration["AdminPassword"] ?? Environment.GetEnvironmentVariable("AdminPassword") ?? "Admin123!";
+
+    Console.WriteLine($"Setting up admin user with email: {adminEmail}");
 
     var adminUser = await userManager.FindByEmailAsync(adminEmail);
     if (adminUser == null)
