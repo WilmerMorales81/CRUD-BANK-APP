@@ -53,10 +53,9 @@ export const logout = async () => {
     console.error("Logout error:", error);
     // Even if API call fails, still remove token and logout
     localStorage.removeItem("token");
-  } finally {
-    // Redirect to login page
-    window.location.href = "/login";
   }
+  // Don't redirect - let React handle the routing
+  // The App component will detect the missing token and show login
 };
 
 export const tryGetLoggedInUser = async () => {
