@@ -1,4 +1,6 @@
-const _apiUrl = "http://localhost:5000/api/auth";
+import { getApiUrl } from '../config/api.js';
+
+const _apiUrl = getApiUrl("/api/auth");
 
 // Helper function to handle API responses
 const handleResponse = async (response) => {
