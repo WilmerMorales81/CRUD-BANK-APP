@@ -169,13 +169,17 @@ app.UseExceptionHandler(errorApp =>
         var error = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>();
         if (error != null)
         {
+            Console.WriteLine($"=== ERROR DETAILS ===");
             Console.WriteLine($"Error: {error.Error.Message}");
+            Console.WriteLine($"Type: {error.Error.GetType().Name}");
             Console.WriteLine($"StackTrace: {error.Error.StackTrace}");
+            Console.WriteLine($"=== END ERROR DETAILS ===");
             
             await context.Response.WriteAsync(JsonSerializer.Serialize(new
             {
                 error = "An error occurred",
-                details = error.Error.Message
+                details = error.Error.Message,
+                type = error.Error.GetType().Name
             }));
         }
     });
