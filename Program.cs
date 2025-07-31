@@ -145,9 +145,13 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowAll", policyBuilder =>
     {
         policyBuilder
-            .AllowAnyOrigin()
+            .WithOrigins(
+                "http://localhost:5173", // Local development
+                "https://crud-bank-app.vercel.app" // Production Vercel domain
+            )
             .AllowAnyMethod()
             .AllowAnyHeader()
+            .AllowCredentials()
             .WithExposedHeaders("Authorization");
     });
 });
