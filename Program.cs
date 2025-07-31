@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Cors.Infrastructure;
+using System.Text.Json;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -139,19 +140,37 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowAll", policyBuilder =>
     {
         policyBuilder
-            .WithOrigins(
-                "http://localhost:5173", // Your Vite frontend URL (local)
-                "https://crud-bank-app.vercel.app", // Production frontend URL
-                "https://your-frontend-domain.vercel.app" // Replace with your actual Vercel domain
-            )
+            .AllowAnyOrigin()
             .AllowAnyMethod()
             .AllowAnyHeader()
-            .AllowCredentials()
             .WithExposedHeaders("Authorization");
     });
 });
 
 var app = builder.Build();
+
+// Add error handling middleware
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        context.Response.StatusCode = 500;
+        context.Response.ContentType = "application/json";
+        
+        var error = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>();
+        if (error != null)
+        {
+            Console.WriteLine($"Error: {error.Error.Message}");
+            Console.WriteLine($"StackTrace: {error.Error.StackTrace}");
+            
+            await context.Response.WriteAsync(JsonSerializer.Serialize(new
+            {
+                error = "An error occurred",
+                details = error.Error.Message
+            }));
+        }
+    });
+});
 
 // Create roles and admin user
 using (var scope = app.Services.CreateScope())
