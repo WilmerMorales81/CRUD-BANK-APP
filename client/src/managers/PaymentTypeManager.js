@@ -1,4 +1,6 @@
-const apiUrl = "/api/paymentType";
+import { getApiUrl } from '../config/api.js';
+
+const apiUrl = getApiUrl("/api/paymentType");
 
 export const getPaymentTypes = () => {
   return fetch(apiUrl).then((res) => res.json());

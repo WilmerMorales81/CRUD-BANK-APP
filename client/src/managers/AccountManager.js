@@ -1,4 +1,6 @@
-const apiUrl = "/api/accounts";
+import { getApiUrl } from '../config/api.js';
+
+const apiUrl = getApiUrl("/api/accounts");
 
 // Obtener todas las cuentas
 export const getAccounts = async () => {
@@ -39,8 +41,8 @@ export const payAccount = async (accountId, paymentData) => {
     }
 
     const token = localStorage.getItem("token");
-    // Fix the URL to include /api
-    const response = await fetch(`/api/accounts/pay/${accountId}`, {
+    // Use the centralized API configuration
+    const response = await fetch(`${apiUrl}/pay/${accountId}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

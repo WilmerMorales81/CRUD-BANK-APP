@@ -1,4 +1,6 @@
-const apiUrl = "/api/accountType";
+import { getApiUrl } from '../config/api.js';
+
+const apiUrl = getApiUrl("/api/accountType");
 
 export const getAccountType = () => {
   return fetch(apiUrl).then((res) => res.json());

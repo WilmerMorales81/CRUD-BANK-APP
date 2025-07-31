@@ -1,4 +1,6 @@
-const apiUrl = "/api/accounts";
+import { getApiUrl } from '../config/api.js';
+
+const apiUrl = getApiUrl("/api/accounts");
 
 const getAuthHeaders = () => ({
   "Content-Type": "application/json",
@@ -59,8 +61,8 @@ export const getCurrentUser = async () => {
 export const updateUserProfile = async (accountId, profileData) => {
   try {
     const token = localStorage.getItem("token");
-    // Update URL to match the backend endpoint
-    const response = await fetch(`/api/accounts/${accountId}/customer`, {
+    // Use the centralized API configuration
+    const response = await fetch(`${apiUrl}/${accountId}/customer`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
