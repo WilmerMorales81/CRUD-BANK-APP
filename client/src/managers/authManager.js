@@ -40,14 +40,19 @@ export const login = async (email, password) => {
 
 export const logout = async () => {
   try {
+    // Call backend logout endpoint
+    await fetch(`${_apiUrl}/logout`, {
+      method: "POST",
+      credentials: "include",
+    });
+    
     // Remove token from localStorage (client-side logout)
     localStorage.removeItem("token");
-    
-    // No need to call backend logout endpoint since it doesn't exist
-    // The token removal is sufficient for logout
     console.log("User logged out successfully");
   } catch (error) {
     console.error("Logout error:", error);
+    // Even if API call fails, still remove token and logout
+    localStorage.removeItem("token");
   } finally {
     // Redirect to login page
     window.location.href = "/login";

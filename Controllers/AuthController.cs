@@ -87,6 +87,14 @@ namespace CrudBankApp.Controllers
             }
         }
 
+        [HttpPost("logout")]
+        public IActionResult Logout()
+        {
+            // For JWT tokens, logout is handled client-side by removing the token
+            // This endpoint just returns success to prevent 404 errors
+            return Ok(new { Message = "Logged out successfully" });
+        }
+
         [HttpGet("me")]
         [Authorize]
         public async Task<IActionResult> Me()
