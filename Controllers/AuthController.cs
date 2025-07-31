@@ -346,13 +346,19 @@ namespace CrudBankApp.Controllers
 
             claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+            // Get JWT configuration with fallbacks (same as Program.cs)
+            var jwtKey = _configuration["Jwt:Key"] ?? Environment.GetEnvironmentVariable("Jwt__Key") ?? "ThisIsMySecretKey123!@#$%ThisIsMySecretKey123!@#$%";
+            var jwtIssuer = _configuration["Jwt:Issuer"] ?? Environment.GetEnvironmentVariable("Jwt__Issuer") ?? "https://crud-bank-app-production.up.railway.app";
+            var jwtAudience = _configuration["Jwt:Audience"] ?? Environment.GetEnvironmentVariable("Jwt__Audience") ?? "https://crud-bank-app.vercel.app";
+            var jwtExpirationHours = _configuration["Jwt:ExpirationHours"] ?? "24";
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var expires = DateTime.UtcNow.AddHours(Convert.ToDouble(_configuration["Jwt:ExpirationHours"] ?? "24"));
+            var expires = DateTime.UtcNow.AddHours(Convert.ToDouble(jwtExpirationHours));
 
             var token = new JwtSecurityToken(
-                issuer: _configuration["Jwt:Issuer"],
-                audience: _configuration["Jwt:Audience"],
+                issuer: jwtIssuer,
+                audience: jwtAudience,
                 claims: claims,
                 expires: expires,
                 signingCredentials: creds
