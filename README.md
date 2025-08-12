@@ -5,7 +5,6 @@ A full-stack banking application demonstrating modern web development practices 
 ## 🚀 Live Demo
 
 - **Frontend:** [https://crud-bank-app.vercel.app](https://crud-bank-app.vercel.app)
-- **Backend API:** [https://crud-bank-app-production.up.railway.app](https://crud-bank-app-production.up.railway.app)
 
 ## 📋 Features
 
@@ -150,8 +149,6 @@ CRUD_BANK_CONN=Host=...;Database=...;Username=...;Password=...;SSL Mode=Require
 Jwt__Key=your-secret-key
 Jwt__Issuer=https://your-backend-url
 Jwt__Audience=https://your-frontend-url
-AdminEmail=admin@crudbank.com
-AdminPassword=Admin123!
 ```
 
 ### Frontend (Vercel)
@@ -171,9 +168,8 @@ VITE_API_URL=https://your-backend-url
 - **Payments:** `POST /api/accounts/pay/{id}`
 - **Delete Account:** `DELETE /api/accounts/{id}`
 
-### Default Admin User
-- **Email:** admin@crudbank.com
-- **Password:** Admin123!
+### Demo Access
+The application includes a demo admin account for testing purposes. Contact the developer for access credentials.
 
 ## 🚀 Deployment
 
