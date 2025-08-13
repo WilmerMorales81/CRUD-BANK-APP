@@ -26,38 +26,46 @@ export default function NavBar({ loggedInUser, setLoggedInUser }) {
 
   return (
     <div>
-      <Navbar color="success" dark fixed="true" expand="lg">
+      <Navbar color="success" dark fixed="true" expand="lg" className="py-2">
         <NavbarBrand className="mr-auto" tag={RRNavLink} to="/">
           <img
             src="./CrudBankLogo.png"
             alt="CrudBank"
             height={50}
             style={{ marginRight: "8px" }}
+            className="d-none d-sm-inline"
+          />
+          <img
+            src="./CrudBankLogo.png"
+            alt="CrudBank"
+            height={40}
+            style={{ marginRight: "8px" }}
+            className="d-inline d-sm-none"
           />
         </NavbarBrand>
         {loggedInUser ? (
           <>
-            <NavbarToggler onClick={toggleNavbar} />
+            <NavbarToggler onClick={toggleNavbar} className="border-0" />
             <Collapse isOpen={open} navbar>
-              <Nav navbar>
-                <NavItem onClick={() => setOpen(false)}>
-                  <NavLink tag={RRNavLink} to="/accounts">
+              <Nav navbar className="w-100">
+                <NavItem onClick={() => setOpen(false)} className="w-100">
+                  <NavLink tag={RRNavLink} to="/accounts" className="text-center py-3">
                     MyProducts
                   </NavLink>
                 </NavItem>
-                <NavItem onClick={() => setOpen(false)}>
-                  <NavLink tag={RRNavLink} to="/Payments">
+                <NavItem onClick={() => setOpen(false)} className="w-100">
+                  <NavLink tag={RRNavLink} to="/Payments" className="text-center py-3">
                     Payments
                   </NavLink>
                 </NavItem>
-                <NavItem onClick={() => setOpen(false)}>
-                  <NavLink tag={RRNavLink} to="/newAccount">
+                <NavItem onClick={() => setOpen(false)} className="w-100">
+                  <NavLink tag={RRNavLink} to="/newAccount" className="text-center py-3">
                     New Product
                   </NavLink>
                 </NavItem>
               </Nav>
             </Collapse>
-            <Button color="dark" outline onClick={handleLogout}>
+            <Button color="dark" outline onClick={handleLogout} className="ms-2">
               Logout
             </Button>
           </>

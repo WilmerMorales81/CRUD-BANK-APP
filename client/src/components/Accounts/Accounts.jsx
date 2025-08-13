@@ -9,13 +9,13 @@ export default function Accounts({ loggedInUser }) {
   return (
     <div className="container">
       <div className="row">
-        <div className="col-sm-8">
+        <div className="col-12 col-lg-8">
           <AccountList
             setDetailsAccountId={setDetailsAccountId}
             loggedInUser={loggedInUser}
           />
         </div>
-        <div className="col-sm-4">
+        <div className="col-12 col-lg-4">
           <AccountDetails detailsAccountId={detailsAccountId} />
         </div>
       </div>
