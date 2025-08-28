@@ -214,13 +214,20 @@ builder.Services.AddCors(options =>
             .WithExposedHeaders("Authorization");
     });
     
-    // Add a more permissive policy for debugging
+    // Add a more permissive policy for debugging (but still specific origins)
     options.AddPolicy("AllowAllOrigins", policyBuilder =>
     {
         policyBuilder
-            .AllowAnyOrigin()
+            .WithOrigins(
+                "http://localhost:5173",
+                "http://localhost:5000", 
+                "https://crud-bank-app.vercel.app",
+                "https://crud-bank-app-production.up.railway.app"
+            )
             .AllowAnyMethod()
-            .AllowAnyHeader();
+            .AllowAnyHeader()
+            .AllowCredentials()
+            .WithExposedHeaders("Authorization");
     });
 });
 
