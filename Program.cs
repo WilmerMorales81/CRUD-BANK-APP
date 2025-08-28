@@ -22,16 +22,33 @@ Console.WriteLine("=== RAILWAY DEBUG START ===");
 Console.WriteLine($"Current directory: {Directory.GetCurrentDirectory()}");
 Console.WriteLine($"Environment variables count: {Environment.GetEnvironmentVariables().Count}");
 
+// Check all environment variables that might contain connection info
 var crudBankConn = Environment.GetEnvironmentVariable("CRUD_BANK_CONN");
 var connectionStringsConn = Environment.GetEnvironmentVariable("ConnectionStrings__CrudBankAppDbConnectionString");
 var configConn = builder.Configuration.GetConnectionString("CrudBankAppDbConnectionString");
+var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+var postgresUrl = Environment.GetEnvironmentVariable("POSTGRES_URL");
 
 Console.WriteLine($"CRUD_BANK_CONN: '{crudBankConn}'");
 Console.WriteLine($"ConnectionStrings__CrudBankAppDbConnectionString: '{connectionStringsConn}'");
 Console.WriteLine($"Config connection string: '{configConn}'");
+Console.WriteLine($"DATABASE_URL: '{databaseUrl}'");
+Console.WriteLine($"POSTGRES_URL: '{postgresUrl}'");
+
+// List all environment variables for debugging
+Console.WriteLine("=== ALL ENVIRONMENT VARIABLES ===");
+foreach (var kv in Environment.GetEnvironmentVariables().Cast<System.Collections.DictionaryEntry>())
+{
+    var key = kv.Key.ToString();
+    if (key.Contains("DATABASE") || key.Contains("CONN") || key.Contains("POSTGRES") || key.Contains("NEON"))
+    {
+        Console.WriteLine($"  {key} = {kv.Value}");
+    }
+}
+Console.WriteLine("=== END ENVIRONMENT VARIABLES ===");
 
 // Try to get connection string from multiple sources
-var connectionString = crudBankConn ?? connectionStringsConn ?? configConn;
+var connectionString = crudBankConn ?? connectionStringsConn ?? configConn ?? databaseUrl ?? postgresUrl;
 
 if (string.IsNullOrEmpty(connectionString))
 {
@@ -46,6 +63,28 @@ if (string.IsNullOrEmpty(connectionString))
     // For Railway, let's try a hardcoded connection string as fallback
     connectionString = "Host=ep-young-resonance-aeqgjf89-pooler.c-2.us-east-2.aws.neon.tech;Port=5432;Database=neondb;Username=neondb_owner;Password=npg_uXl0QsVY7iIW;SSL Mode=Require;Trust Server Certificate=true";
     Console.WriteLine("Using fallback connection string for Railway");
+}
+else
+{
+    // If we have a DATABASE_URL, convert it to the format we need
+    if (connectionString.StartsWith("postgres://") || connectionString.StartsWith("postgresql://"))
+    {
+        Console.WriteLine("Converting DATABASE_URL format to connection string format");
+        try
+        {
+            var uri = new Uri(connectionString);
+            var userInfo = uri.UserInfo.Split(':');
+            var username = userInfo[0];
+            var password = userInfo.Length > 1 ? userInfo[1] : "";
+            
+            connectionString = $"Host={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true";
+            Console.WriteLine($"Converted connection string: {connectionString}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error converting DATABASE_URL: {ex.Message}");
+        }
+    }
 }
 
 Console.WriteLine($"Final connection string: {connectionString}");
