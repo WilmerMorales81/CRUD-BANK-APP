@@ -180,10 +180,12 @@ namespace CrudBankApp.Controllers
             try
             {
                 Console.WriteLine($"[DEBUG] Registration attempt for email: {request.Email}");
+                Console.WriteLine($"[DEBUG] Request data: FirstName={request.FirstName}, LastName={request.LastName}, Address={request.Address}, Phone={request.Phone}");
 
                 // Validate request
                 if (!ModelState.IsValid)
                 {
+                    Console.WriteLine($"[DEBUG] ModelState validation failed: {string.Join(", ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage))}");
                     return BadRequest(new { Message = "Invalid registration data", Errors = ModelState.Values.SelectMany(v => v.Errors) });
                 }
 
@@ -203,22 +205,29 @@ namespace CrudBankApp.Controllers
                 };
 
                 // Create user with password
+                Console.WriteLine($"[DEBUG] Attempting to create user with email: {request.Email}");
                 var result = await _userManager.CreateAsync(user, request.Password);
                 if (!result.Succeeded)
                 {
+                    Console.WriteLine($"[DEBUG] User creation failed: {string.Join(", ", result.Errors.Select(e => e.Description))}");
                     return BadRequest(new { Message = "Failed to create user", Errors = result.Errors });
                 }
+                Console.WriteLine($"[DEBUG] User created successfully with ID: {user.Id}");
 
                 // Assign Customer role
+                Console.WriteLine($"[DEBUG] Attempting to assign Customer role to user: {user.Id}");
                 var roleResult = await _userManager.AddToRoleAsync(user, "Customer");
                 if (!roleResult.Succeeded)
                 {
+                    Console.WriteLine($"[DEBUG] Role assignment failed: {string.Join(", ", roleResult.Errors.Select(e => e.Description))}");
                     // If role assignment fails, delete the user and return error
                     await _userManager.DeleteAsync(user);
                     return StatusCode(500, new { Message = "Failed to assign role", Errors = roleResult.Errors });
                 }
+                Console.WriteLine($"[DEBUG] Customer role assigned successfully");
 
                 // Create user profile
+                Console.WriteLine($"[DEBUG] Creating user profile for user: {user.Id}");
                 var userProfile = new UserProfile
                 {
                     IdentityUserId = user.Id,
@@ -230,6 +239,7 @@ namespace CrudBankApp.Controllers
 
                 _dbContext.UserProfiles.Add(userProfile);
                 await _dbContext.SaveChangesAsync();
+                Console.WriteLine($"[DEBUG] User profile created successfully with ID: {userProfile.Id}");
 
                 // Generate token for immediate login
                 var roles = await _userManager.GetRolesAsync(user);

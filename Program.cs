@@ -59,10 +59,28 @@ if (string.IsNullOrEmpty(connectionString))
 builder.Services.AddDbContext<CrudBankAppDbContext>(options =>
     options.UseNpgsql(connectionString));
 
-// Configure Identity
-builder.Services.AddIdentity<IdentityUser, IdentityRole>()
-    .AddEntityFrameworkStores<CrudBankAppDbContext>()
-    .AddDefaultTokenProviders();
+// Configure Identity with custom password requirements
+builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
+{
+    // Password settings
+    options.Password.RequireDigit = true;
+    options.Password.RequireLowercase = true;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequireUppercase = true;
+    options.Password.RequiredLength = 6;
+    options.Password.RequiredUniqueChars = 1;
+    
+    // Lockout settings
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+    options.Lockout.MaxFailedAccessAttempts = 5;
+    options.Lockout.AllowedForNewUsers = true;
+    
+    // User settings
+    options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+    options.User.RequireUniqueEmail = true;
+})
+.AddEntityFrameworkStores<CrudBankAppDbContext>()
+.AddDefaultTokenProviders();
 
 // Configure JWT Authentication
 // Update the JWT Authentication configuration section
