@@ -157,7 +157,7 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// Replace the existing CORS configuration with this:
+// Configure CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policyBuilder =>
@@ -165,12 +165,23 @@ builder.Services.AddCors(options =>
         policyBuilder
             .WithOrigins(
                 "http://localhost:5173", // Local development
-                "https://crud-bank-app.vercel.app" // Production Vercel domain
+                "http://localhost:5000", // Local backend
+                "https://crud-bank-app.vercel.app", // Production Vercel domain
+                "https://crud-bank-app-production.up.railway.app" // Railway backend
             )
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials()
             .WithExposedHeaders("Authorization");
+    });
+    
+    // Add a more permissive policy for debugging
+    options.AddPolicy("AllowAllOrigins", policyBuilder =>
+    {
+        policyBuilder
+            .AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader();
     });
 });
 
@@ -287,7 +298,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseRouting();
-app.UseCors("AllowAll");
+app.UseCors("AllowAllOrigins"); // Temporarily use more permissive CORS for debugging
 
 app.UseAuthentication();
 app.UseAuthorization();
